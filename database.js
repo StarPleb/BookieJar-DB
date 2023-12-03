@@ -2,12 +2,7 @@ import mysql from 'mysql2'
 import dotenv from 'dotenv'
 dotenv.config()
 
-// With dotenv, you can create a .env file containing the values for your sql server
-// (My .env file below)
-// MYSQL_HOST='127.0.0.1' OR MYSQL_HOST='localhost'
-// MYSQL_USER='root'
-// MYSQL_PASSWORD='Root2112'
-// MYSQL_DATABASE='bookie_jar'
+// With dotenv, you can create a .env file containing the fields for your sql server
 
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
