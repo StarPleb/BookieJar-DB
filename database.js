@@ -22,7 +22,7 @@ loginAndGetLibrary("Mike", "Pass")
 // Example of querying for books with genre being fiction
 // getAllBooksLike("fiction").then(r => console.log("Get All Books Like:", r))
 
-// Example of adding book to database
+// Example of adding a book and user to database
 // addBook(1, "Hunger Games", "George Lucas", 2016, "fiction").then(r => console.log("added", r))
 // addUser("Benson", "Beans").then(r=>{
 //   console.log("user added with user_id:", r.insertId)
@@ -33,8 +33,8 @@ loginAndGetLibrary("Mike", "Pass")
 // Function that will be called most often, will return array of books belonging to the user.
 export async function loginAndGetLibrary(username, password){
   
+  // validateUser returns an object {exists: boolean, user_id: int}
   let result = await validateUser(username, password)
-  // result is {exists: boolean, user_id: n}
   if(result.exists){
     // returns an array containing each book[{ }, { }, { },...]
     return await getLibrary(result.user_id)
@@ -159,7 +159,9 @@ export async function addBook(user_id, name, author, year, genre) {
   return id
 }
 
-async function addBookToCollection(bookID, collectionID){
+// Usually called when adding a book to the database,
+// this function can also be used for adding an existing book to another collection.
+export async function addBookToCollection(bookID, collectionID){
   const [rows] = await pool.query(`
   INSERT INTO collection_book (book_id, collection_id)
   VALUES (?, ?)
