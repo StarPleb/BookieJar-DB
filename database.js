@@ -1,6 +1,5 @@
 import mysql from 'mysql2'
 import dotenv from 'dotenv'
-
 dotenv.config()
 
 // With dotenv, you can create a .env file containing the values for your sql server
@@ -84,10 +83,14 @@ export async function getLibrary(user_id){
 export async function getCollectionID(user_id){
   let query = "SELECT * FROM collection WHERE user_id = " + user_id
   const [collection] = await pool.query(query)
-  //This assumes that each user only has one collection or library.
-  //The database supports multiple collections though and this code can be changed.
-  await getBookIds(collection[0].collection_id)
-  return collection[0].collection_id
+  
+  let collectionIdArray = []
+  
+  for (let i = 0; i < collection.length; i++){
+    collectionIdArray.push(collection[i].collection_id)
+  }
+  
+  return collectionIdArray
 }
 
 export async function getBookIds(collection_id){
@@ -108,7 +111,7 @@ export async function getAllBooksLike(genre){
   return books
 }
 
-// Returns an array containing all of the books in an array of bookIDs (Collection)
+// Returns an array containing all of the books from an array of bookIDs
 export async function getAllBooksInCollection(bookIDs){
   let books = []
   let id_values = []
@@ -122,11 +125,13 @@ export async function getAllBooksInCollection(bookIDs){
   return books
 }
 
+// Return all books from the database
 export async function getBooks() {
   const [books] = await pool.query("SELECT * FROM book")
   return books
 }
 
+// Return a specific book from database
 export async function getBook(id) {
   const [books] = await pool.query(`
   SELECT * 
@@ -137,20 +142,6 @@ export async function getBook(id) {
 }
 
 
-export async function addBook(user_id, name, author, year, genre) {
-  const [rows] = await pool.query(`
-  INSERT INTO book (name, author, year, genre)
-  VALUES (?, ?, ?, ?)
-  `, [name, author, year, genre])
-  const id = rows.insertId
-  const collection_id = await getCollectionID(user_id)
-  
-  // Database has a collection_book table linking many books to many collections.
-  await addBookToCollection(id, collection_id)
-  return id
-}
-
-// Add user to function
 export async function addUser(username, password) {
   const [rows] = await pool.query(`
   INSERT INTO user (username, password)
@@ -160,7 +151,18 @@ export async function addUser(username, password) {
   return rows
 }
 
+export async function addBook(user_id, name, author, year, genre) {
+  const [rows] = await pool.query(`
+  INSERT INTO book (name, author, year, genre)
+  VALUES (?, ?, ?, ?)
+  `, [name, author, year, genre])
+  const id = rows.insertId
+  const collection_id = await getCollectionID(user_id)
 
+  // Database has a collection_book table linking many books to many collections.
+  await addBookToCollection(id, collection_id)
+  return id
+}
 
 async function addBookToCollection(bookID, collectionID){
   const [rows] = await pool.query(`
